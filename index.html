@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>St. Meridian Academy — ERP Portal</title>
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Tailwind custom theme config -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: {
+               50: '#eef2f9', 100: '#d5dfef', 200: '#abbfdf', 300: '#7a9acb',
+              400: '#4f76b6', 500: '#2d5a9e', 600: '#1e4080', 700: '#163162',
+              800: '#0f2744', 900: '#091829'
+            },
+            gold: {
+               50: '#fdf9ee', 100: '#f9f0d2', 200: '#f1dfa0', 300: '#e5c85e',
+              400: '#d4ac38', 500: '#c9a84c', 600: '#b8892a', 700: '#966b1f',
+              800: '#7a5318', 900: '#5e3e12'
+            },
+            cream: '#fdf8f2'
+          },
+          fontFamily: {
+            display: ['"Playfair Display"', 'serif'],
+            serif:   ['"DM Serif Display"', 'serif'],
+            sans:    ['"DM Sans"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+
+  <!-- Custom stylesheet -->
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+
+
+<body class="min-h-screen">
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== ACCOUNT / LOGIN MODAL ===== -->
+<div id="authModal" class="fixed inset-0 z-[200] hidden">
+  <div id="authBackdrop" class="absolute inset-0 bg-navy-900/60 backdrop-blur-[2px]"></div>
+  <div class="relative min-h-screen flex items-start sm:items-center justify-center p-5">
+    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-amber-100">
+      <div class="grid md:grid-cols-2">
+        <!-- Left visual -->
+        <div class="hidden md:block bg-navy-900 text-white p-8 relative overflow-hidden">
+          <div class="absolute -right-24 -top-24 w-56 h-56 rounded-full bg-gold-500/20"></div>
+          <div class="absolute -left-24 -bottom-24 w-56 h-56 rounded-full bg-white/10"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-8">
+              <div class="w-11 h-11 bg-gold-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f2744" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                  <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                </svg>
+              </div>
+              <div>
+                <div class="font-display text-lg font-bold leading-tight">St. Meridian</div>
+                <div class="text-xs text-navy-300 tracking-widest uppercase">ERP Portal</div>
+              </div>
+            </div>
+            <h3 class="font-display text-2xl font-bold mb-2">Welcome back.</h3>
+            <p class="text-sm text-navy-200 leading-relaxed">
+              Sign in to access fees, notices, syllabus, results and more.
+            </p>
+            <div class="mt-6 space-y-3 text-xs text-navy-200">
+              <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span> Secure access with Firebase Authentication</div>
+              <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span> Switch accounts anytime from the top-right</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right form -->
+        <div class="p-6 sm:p-8">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 id="authTitle" class="font-display text-xl font-bold text-navy-900">Sign in</h2>
+              <p class="text-xs text-gray-500 mt-1">Use your school portal credentials</p>
+            </div>
+            <button id="authCloseBtn" type="button" class="p-2 rounded-lg hover:bg-gray-100 transition" aria-label="Close">
+              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+
+          <form id="authForm" class="mt-6 space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1.5">Email</label>
+              <input type="email" id="authEmail" placeholder="name@example.com" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:border-gold-400 focus:ring-2 focus:ring-gold-100"/>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1.5">Password</label>
+              <input type="password" id="authPassword" placeholder="••••••••" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:border-gold-400 focus:ring-2 focus:ring-gold-100"/>
+            </div>
+            <button type="submit" id="authBtn" class="w-full bg-navy-900 hover:bg-navy-800 text-white font-semibold py-3 rounded-xl text-sm transition">
+              Sign in
+            </button>
+
+            <p id="authError" class="text-xs text-red-500 min-h-[1rem]"></p>
+
+            <div class="pt-2 text-xs text-gray-500">
+              <span id="authToggleText">
+                Don’t have an account?
+                <button type="button" id="authToggle" class="font-semibold text-gold-700 hover:underline">Create one</button>
+              </span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MOBILE SIDEBAR OVERLAY ===== -->
+<div class="fixed inset-0 bg-black/40 z-40 hidden" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div class="flex min-h-screen">
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar w-64 bg-navy-900 text-white flex flex-col min-h-screen" id="sidebar">
+
+    <!-- Logo -->
+    <div class="px-6 py-7 border-b border-navy-700/60">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gold-500 rounded-lg flex items-center justify-center flex-shrink-0">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f2744" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+        </div>
+        <div>
+          <div class="font-display text-sm font-bold leading-tight text-white">St. Meridian</div>
+          <div class="text-[10px] text-gold-400 tracking-widest uppercase">Academy Portal</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student badge -->
+    <div class="px-5 py-4 border-b border-navy-700/40">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-gold-500/20 border border-gold-500/40 flex items-center justify-center text-gold-400 font-bold text-sm">AK</div>
+        <div>
+          <div class="text-[13px] font-semibold text-white">Aryan Kumar</div>
+          <div class="text-[11px] text-navy-300">Class X-B · Roll #14</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+      <div class="text-[10px] uppercase tracking-widest text-navy-400 px-3 mb-2 mt-1">Main Menu</div>
+
+      <a class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium text-white" onclick="navigate('dashboard')">
+        <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium text-navy-200" onclick="navigate('fees')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 100 4h4a2 2 0 110 4H8"/><path d="M12 6v2m0 8v2"/></svg>
+        Fee Payment
+        <span class="ml-auto badge bg-red-500/20 text-red-400">Due</span>
+      </a>
+      <a class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium text-navy-200" onclick="navigate('notices')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        Notices
+        <span class="ml-auto badge bg-gold-500/20 text-gold-400">3 New</span>
+      </a>
+      <a class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium text-navy-200" onclick="navigate('syllabus')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+        Syllabus
+      </a>
+      <a class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium text-navy-200" onclick="navigate('bus')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 6v6m4-6v6m4-6v6M3 10h18M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2zM3 16h18"/><circle cx="7" cy="18" r="1"/><circle cx="17" cy="18" r="1"/></svg>
+        Bus Facility
+      </a>
+      <a class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium text-navy-200" onclick="navigate('history')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        About &amp; History
+      </a>
+
+      <div class="text-[10px] uppercase tracking-widest text-navy-400 px-3 mb-2 mt-4">Academics</div>
+
+      <a class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium text-navy-200" onclick="navigate('results')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Results &amp; Grades
+      </a>
+      <a class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium text-navy-200" onclick="navigate('attendance')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        Attendance
+      </a>
+    </nav>
+
+    <!-- Sign Out -->
+    <div class="px-4 py-4 border-t border-navy-700/40">
+      <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-navy-300 hover:text-white hover:bg-navy-700/50 transition-all">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <div class="flex-1 flex flex-col min-w-0">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-amber-100 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+      <div class="flex items-center gap-4">
+        <button class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition" onclick="toggleSidebar()">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div>
+          <h1 class="font-display text-lg font-bold text-navy-900 leading-tight" id="pageTitle">Dashboard</h1>
+          <p class="text-xs text-gray-400" id="pageSubtitle">Academic Year 2025–26</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-full px-4 py-1.5">
+          <div class="w-2 h-2 rounded-full bg-green-500 pulse"></div>
+          <span class="text-xs text-amber-800 font-medium">Portal Active</span>
+        </div>
+        <button class="relative p-2 rounded-full hover:bg-amber-50 transition" onclick="navigate('notices')">
+          <svg class="w-5 h-5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[9px] text-white flex items-center justify-center font-bold">3</span>
+        </button>
+        <button id="accountBtn" type="button" class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full hover:bg-amber-50 transition border border-transparent hover:border-amber-100">
+          <span id="headerInitials" class="w-8 h-8 rounded-full bg-navy-800 text-white text-xs font-bold flex items-center justify-center">AK</span>
+          <span class="hidden sm:inline text-xs font-semibold text-navy-900" id="accountBtnText">Sign in</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Pages -->
+    <main class="flex-1 overflow-y-auto p-5 md:p-8 bg-cream">
+
+
+      <!-- ===== DASHBOARD ===== -->
+      <div class="page active slide-in" id="page-dashboard">
+        <div class="rounded-2xl bg-navy-900 text-white p-7 mb-7 relative overflow-hidden">
+          <div class="absolute inset-0 opacity-10" style="background:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2220%22 cy=%2220%22 r=%2240%22 fill=%22white%22/><circle cx=%2280%22 cy=%2280%22 r=%2230%22 fill=%22white%22/></svg>') center/cover"></div>
+          <div class="relative">
+            <p class="text-gold-400 text-xs tracking-widest uppercase mb-1">Welcome back</p>
+            <h2 class="font-display text-2xl md:text-3xl font-bold mb-1">Good Morning, Aryan! 👋</h2>
+            <p class="text-navy-300 text-sm">Monday, 20 April 2026 · Class X-B · Term II in progress</p>
+            <div class="mt-5 flex flex-wrap gap-3">
+              <button onclick="navigate('fees')" class="bg-gold-500 hover:bg-gold-400 text-navy-900 text-xs font-bold px-4 py-2 rounded-full transition">Pay Fees Now</button>
+              <button onclick="navigate('notices')" class="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-4 py-2 rounded-full transition border border-white/20">View Notices</button>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
+          <div class="card-hover bg-white rounded-xl p-5 border border-amber-100">
+            <div class="text-navy-400 text-xs font-medium mb-3 uppercase tracking-wide">Attendance</div>
+            <div class="text-3xl font-display font-bold text-navy-900">87%</div>
+            <div class="progress-bar mt-3"><div class="progress-fill" style="width:87%"></div></div>
+            <div class="text-xs text-gray-400 mt-2">174/200 days present</div>
+          </div>
+          <div class="card-hover bg-white rounded-xl p-5 border border-amber-100">
+            <div class="text-navy-400 text-xs font-medium mb-3 uppercase tracking-wide">Current Grade</div>
+            <div class="text-3xl font-display font-bold text-green-600">A+</div>
+            <div class="text-xs text-gray-400 mt-2">Overall: 91.4%</div>
+            <div class="text-xs text-green-500 font-medium mt-1">↑ 2.1% from last term</div>
+          </div>
+          <div class="card-hover bg-white rounded-xl p-5 border border-red-100 border-l-4 border-l-red-400">
+            <div class="text-red-400 text-xs font-medium mb-3 uppercase tracking-wide">Fees Due</div>
+            <div class="text-3xl font-display font-bold text-red-500">₹8,500</div>
+            <div class="text-xs text-gray-400 mt-2">Due by 30 Apr 2026</div>
+            <button onclick="navigate('fees')" class="text-xs text-red-500 font-semibold mt-1 hover:underline">Pay Now →</button>
+          </div>
+          <div class="card-hover bg-white rounded-xl p-5 border border-amber-100">
+            <div class="text-navy-400 text-xs font-medium mb-3 uppercase tracking-wide">Class Rank</div>
+            <div class="text-3xl font-display font-bold text-navy-900">#3</div>
+            <div class="text-xs text-gray-400 mt-2">Out of 42 students</div>
+            <div class="text-xs text-gold-500 font-medium mt-1">Top 10%</div>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="bg-white rounded-xl border border-amber-100 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 class="font-display text-base font-bold text-navy-900">Recent Notices</h3>
+              <button onclick="navigate('notices')" class="text-xs text-gold-600 font-semibold hover:underline">View All</button>
+            </div>
+            <div class="divide-y divide-gray-50" id="dashNotices"></div>
+          </div>
+          <div class="bg-white rounded-xl border border-amber-100 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+              <h3 class="font-display text-base font-bold text-navy-900">Today's Timetable</h3>
+              <p class="text-xs text-gray-400">Monday Schedule — Class X-B</p>
+            </div>
+            <div class="divide-y divide-gray-50" id="timetable"></div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ===== FEES ===== -->
+      <div class="page slide-in" id="page-fees">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-7">
+          <div class="bg-white border border-amber-100 rounded-xl p-5">
+            <p class="text-xs text-gray-400 uppercase tracking-wide mb-2">Annual Fee</p>
+            <p class="font-display text-2xl font-bold text-navy-900">₹42,000</p>
+            <div class="progress-bar mt-3"><div class="progress-fill" style="width:75%"></div></div>
+            <p class="text-xs text-gray-400 mt-2">₹31,500 paid · ₹10,500 remaining</p>
+          </div>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-5">
+            <p class="text-xs text-red-500 uppercase tracking-wide mb-2 font-semibold">Amount Due</p>
+            <p class="font-display text-2xl font-bold text-red-600">₹8,500</p>
+            <p class="text-xs text-red-400 mt-3">⚠ Due by 30 April 2026</p>
+          </div>
+          <div class="bg-green-50 border border-green-200 rounded-xl p-5">
+            <p class="text-xs text-green-600 uppercase tracking-wide mb-2 font-semibold">Last Paid</p>
+            <p class="font-display text-2xl font-bold text-green-700">₹8,500</p>
+            <p class="text-xs text-green-500 mt-3">✓ 15 January 2026</p>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="bg-white rounded-xl border border-amber-100 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+              <h3 class="font-display text-base font-bold text-navy-900">Fee Structure — Class X (2025-26)</h3>
+            </div>
+            <table class="w-full text-sm">
+              <thead><tr class="bg-navy-900 text-white text-xs"><th class="text-left px-5 py-3">Fee Component</th><th class="text-right px-5 py-3">Amount</th><th class="text-right px-5 py-3">Status</th></tr></thead>
+              <tbody id="feeTable"></tbody>
+              <tfoot><tr class="bg-amber-50 font-bold border-t-2 border-amber-200"><td class="px-5 py-3 text-navy-900">Total Annual Fee</td><td class="px-5 py-3 text-right text-navy-900">₹42,000</td><td class="px-5 py-3 text-right text-green-600">75% Paid</td></tr></tfoot>
+            </table>
+          </div>
+          <div class="bg-white rounded-xl border border-amber-100 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+              <h3 class="font-display text-base font-bold text-navy-900">Make a Payment</h3>
+            </div>
+            <div class="p-5 space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Payment For</label>
+                <select id="payFor" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:border-gold-400 focus:ring-2 focus:ring-gold-100">
+                  <option>Select fee component...</option>
+                  <option>Tuition Fee — Q3 (₹5,500)</option>
+                  <option>Transport Fee — Q3 (₹1,800)</option>
+                  <option>Exam Fee (₹800)</option>
+                  <option>Activity Fee (₹400)</option>
+                  <option>Other / Custom Amount</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Amount (₹)</label>
+                <input type="number" id="payAmount" placeholder="Enter amount" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:border-gold-400 focus:ring-2 focus:ring-gold-100"/>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Payment Method</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <label class="cursor-pointer border-2 border-gray-200 rounded-lg p-2.5 text-center text-xs font-medium hover:border-gold-400 transition has-[:checked]:border-gold-500 has-[:checked]:bg-gold-50"><input type="radio" name="payMethod" value="upi" class="sr-only"> 💳 UPI</label>
+                  <label class="cursor-pointer border-2 border-gray-200 rounded-lg p-2.5 text-center text-xs font-medium hover:border-gold-400 transition has-[:checked]:border-gold-500 has-[:checked]:bg-gold-50"><input type="radio" name="payMethod" value="card" class="sr-only"> 🏦 Card</label>
+                  <label class="cursor-pointer border-2 border-gray-200 rounded-lg p-2.5 text-center text-xs font-medium hover:border-gold-400 transition has-[:checked]:border-gold-500 has-[:checked]:bg-gold-50"><input type="radio" name="payMethod" value="netbanking" class="sr-only"> 🌐 Net Banking</label>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Transaction / Reference ID</label>
+                <input type="text" id="payRef" placeholder="e.g. UPI123456789" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:border-gold-400 focus:ring-2 focus:ring-gold-100"/>
+              </div>
+              <button onclick="submitPayment()" class="w-full bg-navy-900 hover:bg-navy-800 text-white font-semibold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                Submit Payment
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-amber-100 mt-6 overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-100">
+            <h3 class="font-display text-base font-bold text-navy-900">Payment History</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide"><th class="text-left px-5 py-3">Date</th><th class="text-left px-5 py-3">Description</th><th class="text-left px-5 py-3">Method</th><th class="text-right px-5 py-3">Amount</th><th class="text-right px-5 py-3">Status</th></tr></thead>
+              <tbody id="paymentHistory"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ===== NOTICES ===== -->
+      <div class="page slide-in" id="page-notices">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="font-display text-xl font-bold text-navy-900">School Notices</h2>
+            <p class="text-sm text-gray-500 mt-0.5">Official announcements &amp; circulars</p>
+          </div>
+          <select id="noticeFilter" onchange="filterNotices()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:border-gold-400">
+            <option value="all">All Notices</option>
+            <option value="urgent">Urgent</option>
+            <option value="exam">Exams</option>
+            <option value="event">Events</option>
+            <option value="holiday">Holidays</option>
+          </select>
+        </div>
+        <div class="space-y-4" id="noticeList"></div>
+      </div>
+
+
+      <!-- ===== SYLLABUS ===== -->
+      <div class="page slide-in" id="page-syllabus">
+        <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 class="font-display text-xl font-bold text-navy-900">Syllabus</h2>
+            <p class="text-sm text-gray-500 mt-0.5">Curriculum overview for Academic Year 2025–26</p>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <select id="syllabusClass" onchange="renderSyllabus()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:border-gold-400">
+              <option value="X">Class X</option>
+              <option value="IX">Class IX</option>
+              <option value="VIII">Class VIII</option>
+              <option value="VII">Class VII</option>
+            </select>
+            <select id="syllabusTerm" onchange="renderSyllabus()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:border-gold-400">
+              <option value="I">Term I</option>
+              <option value="II" selected>Term II</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5" id="syllabusCards"></div>
+      </div>
+
+
+      <!-- ===== BUS FACILITY ===== -->
+      <div class="page slide-in" id="page-bus">
+        <div class="mb-6">
+          <h2 class="font-display text-xl font-bold text-navy-900">Bus Facility</h2>
+          <p class="text-sm text-gray-500 mt-0.5">School transport routes, timing &amp; applications</p>
+        </div>
+        <div class="bg-navy-900 text-white rounded-2xl p-6 mb-6 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <p class="text-gold-400 text-xs tracking-widest uppercase mb-1">Current Status</p>
+            <p class="font-display text-xl font-bold">Bus #B-04 — Greenfield Route</p>
+            <p class="text-navy-300 text-sm mt-1">Pickup: 7:15 AM · Stop: Greenfield Park Gate</p>
+          </div>
+          <div class="flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-full px-4 py-2">
+            <div class="w-2 h-2 rounded-full bg-green-400 pulse"></div>
+            <span class="text-green-300 text-xs font-semibold">Active Subscription</span>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="bg-white rounded-xl border border-amber-100 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+              <h3 class="font-display text-base font-bold text-navy-900">Available Bus Routes</h3>
+            </div>
+            <div class="divide-y divide-gray-50" id="busRoutes"></div>
+          </div>
+          <div class="bg-white rounded-xl border border-amber-100 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+              <h3 class="font-display text-base font-bold text-navy-900">Apply for Bus Facility</h3>
+              <p class="text-xs text-gray-400 mt-0.5">Submit your application for new / change of route</p>
+            </div>
+            <div class="p-5 space-y-4">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1.5">Student Name</label>
+                  <input type="text" id="busName" value="Aryan Kumar" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:border-gold-400 focus:ring-2 focus:ring-gold-100"/>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1.5">Class &amp; Section</label>
+                  <input type="text" id="busClass" value="X-B" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:border-gold-400 focus:ring-2 focus:ring-gold-100"/>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Select Route</label>
+                <select id="busRoute" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:border-gold-400">
+                  <option>Select preferred route...</option>
+                  <option>Route 1 — City Centre via MG Road (₹1,800/month)</option>
+                  <option>Route 2 — Greenfield / Oakwood (₹1,600/month)</option>
+                  <option>Route 3 — Riverside Colony (₹2,000/month)</option>
+                  <option>Route 4 — Sector 7–12 (₹1,500/month)</option>
+                  <option>Route 5 — Palm Heights (₹1,750/month)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Pickup Stop / Address</label>
+                <input type="text" id="busStop" placeholder="Enter your nearest stop or address" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:border-gold-400 focus:ring-2 focus:ring-gold-100"/>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Parent / Guardian Contact</label>
+                <input type="tel" id="busContact" placeholder="10-digit mobile number" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:border-gold-400 focus:ring-2 focus:ring-gold-100"/>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Application Type</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <label class="cursor-pointer border-2 border-gray-200 rounded-lg p-2.5 text-center text-xs font-medium hover:border-gold-400 transition has-[:checked]:border-gold-500 has-[:checked]:bg-gold-50"><input type="radio" name="appType" value="new" class="sr-only"> 🆕 New Application</label>
+                  <label class="cursor-pointer border-2 border-gray-200 rounded-lg p-2.5 text-center text-xs font-medium hover:border-gold-400 transition has-[:checked]:border-gold-500 has-[:checked]:bg-gold-50"><input type="radio" name="appType" value="change" class="sr-only"> 🔄 Change Route</label>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Additional Notes</label>
+                <textarea id="busNotes" rows="2" placeholder="Any special requirements..." class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:border-gold-400 focus:ring-2 focus:ring-gold-100 resize-none"></textarea>
+              </div>
+              <button onclick="submitBusApp()" class="w-full bg-navy-900 hover:bg-navy-800 text-white font-semibold py-3 rounded-xl text-sm transition">Submit Application</button>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-amber-100 mt-6 overflow-hidden" id="busAppSection" style="display:none">
+          <div class="px-5 py-4 border-b border-gray-100">
+            <h3 class="font-display text-base font-bold text-navy-900">Your Applications</h3>
+          </div>
+          <div id="busAppList" class="divide-y divide-gray-50"></div>
+        </div>
+      </div>
+
+
+      <!-- ===== ABOUT & HISTORY ===== -->
+      <div class="page slide-in" id="page-history">
+        <div class="rounded-2xl bg-navy-900 text-white p-8 mb-7 relative overflow-hidden">
+          <div class="absolute right-0 top-0 w-40 h-40 opacity-10" style="background:radial-gradient(circle,#c9a84c 0%,transparent 70%)"></div>
+          <div class="relative">
+            <div class="inline-block border border-gold-500/40 text-gold-400 text-xs tracking-widest uppercase px-3 py-1 rounded-full mb-4">Est. 1952</div>
+            <h2 class="font-display text-3xl md:text-4xl font-bold mb-3">St. Meridian Academy</h2>
+            <p class="text-navy-300 text-sm max-w-lg leading-relaxed">"Shaping minds, building character, fostering excellence for over seven decades — a legacy of learning that endures."</p>
+            <div class="grid grid-cols-3 gap-6 mt-7 max-w-sm">
+              <div><div class="font-display text-2xl font-bold text-gold-400">72+</div><div class="text-navy-400 text-xs">Years of Excellence</div></div>
+              <div><div class="font-display text-2xl font-bold text-gold-400">4,200+</div><div class="text-navy-400 text-xs">Alumni Worldwide</div></div>
+              <div><div class="font-display text-2xl font-bold text-gold-400">180+</div><div class="text-navy-400 text-xs">Faculty Members</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6 mb-7">
+          <div class="bg-white rounded-xl border border-amber-100 p-6">
+            <h3 class="font-display text-lg font-bold text-navy-900 mb-3">Our Mission &amp; Vision</h3>
+            <p class="text-gray-600 text-sm leading-relaxed mb-4">St. Meridian Academy is committed to nurturing holistic development — intellectual curiosity, moral integrity, and social responsibility — preparing students to become leaders in an ever-evolving world.</p>
+            <p class="text-gray-600 text-sm leading-relaxed">Affiliated with CBSE (Code: 1030045), the school offers classes from Nursery to Class XII, with streams in Science, Commerce, and Humanities at the senior secondary level.</p>
+            <div class="mt-5 flex flex-wrap gap-2">
+              <span class="badge bg-navy-100 text-navy-700">CBSE Affiliated</span>
+              <span class="badge bg-gold-100 text-gold-700">ISO 9001:2015</span>
+              <span class="badge bg-green-100 text-green-700">Green Campus</span>
+              <span class="badge bg-blue-100 text-blue-700">Smart Classrooms</span>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl border border-amber-100 p-6">
+            <h3 class="font-display text-lg font-bold text-navy-900 mb-3">Facilities &amp; Infrastructure</h3>
+            <div class="space-y-3" id="facilitiesList"></div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-amber-100 p-6 mb-7">
+          <h3 class="font-display text-xl font-bold text-navy-900 mb-6">Our Journey Through Time</h3>
+          <div class="space-y-6" id="timeline"></div>
+        </div>
+        <div class="bg-white rounded-xl border border-amber-100 p-6">
+          <h3 class="font-display text-xl font-bold text-navy-900 mb-5">School Leadership</h3>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" id="leadership"></div>
+        </div>
+      </div>
+
+
+      <!-- ===== RESULTS ===== -->
+      <div class="page slide-in" id="page-results">
+        <div class="grid sm:grid-cols-3 gap-4 mb-6">
+          <div class="bg-white rounded-xl border border-amber-100 p-5"><p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Overall %</p><p class="font-display text-3xl font-bold text-navy-900">91.4%</p><p class="text-xs text-green-500 font-medium mt-1">Grade: A+</p></div>
+          <div class="bg-white rounded-xl border border-amber-100 p-5"><p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Class Rank</p><p class="font-display text-3xl font-bold text-navy-900">#3 / 42</p><p class="text-xs text-gold-500 font-medium mt-1">Top 10% of batch</p></div>
+          <div class="bg-white rounded-xl border border-amber-100 p-5"><p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Best Subject</p><p class="font-display text-3xl font-bold text-navy-900">Maths</p><p class="text-xs text-blue-500 font-medium mt-1">98/100</p></div>
+        </div>
+        <div class="bg-white rounded-xl border border-amber-100 overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-100">
+            <h3 class="font-display text-base font-bold text-navy-900">Term II — Mid-Term Examination Results</h3>
+          </div>
+          <table class="w-full text-sm">
+            <thead><tr class="bg-navy-900 text-white text-xs"><th class="text-left px-5 py-3">Subject</th><th class="text-right px-5 py-3">Max Marks</th><th class="text-right px-5 py-3">Marks Scored</th><th class="text-right px-5 py-3">Grade</th><th class="text-right px-5 py-3">Remarks</th></tr></thead>
+            <tbody id="resultsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <!-- ===== ATTENDANCE ===== -->
+      <div class="page slide-in" id="page-attendance">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white rounded-xl border border-amber-100 p-5"><p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total Days</p><p class="font-display text-3xl font-bold text-navy-900">200</p></div>
+          <div class="bg-white rounded-xl border border-amber-100 p-5"><p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Present</p><p class="font-display text-3xl font-bold text-green-600">174</p></div>
+          <div class="bg-white rounded-xl border border-amber-100 p-5"><p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Absent</p><p class="font-display text-3xl font-bold text-red-500">26</p></div>
+          <div class="bg-white rounded-xl border border-amber-100 p-5"><p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Percentage</p><p class="font-display text-3xl font-bold text-navy-900">87%</p></div>
+        </div>
+        <div class="bg-white rounded-xl border border-amber-100 overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-100">
+            <h3 class="font-display text-base font-bold text-navy-900">Subject-wise Attendance</h3>
+          </div>
+          <div class="p-5 space-y-4" id="attendanceList"></div>
+        </div>
+      </div>
+
+
+    </main>
+  </div>
+</div>
+
+
+<!-- ===== PAYMENT SUCCESS MODAL ===== -->
+<div class="modal-overlay" id="payModal">
+  <div class="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl">
+    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+    </div>
+    <h3 class="font-display text-xl font-bold text-navy-900 mb-2">Payment Submitted!</h3>
+    <p class="text-gray-500 text-sm mb-1" id="modalPayDesc"></p>
+    <p class="text-gray-400 text-xs mb-6" id="modalPayRef"></p>
+    <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800 mb-5">
+      Your payment is under verification. Receipt will be sent to your registered email within 24 hours.
+    </div>
+    <button onclick="closePayModal()" class="bg-navy-900 text-white font-semibold px-8 py-2.5 rounded-xl text-sm hover:bg-navy-800 transition">Done</button>
+  </div>
+</div>
+
+<!-- Application JavaScript (loaded last so DOM is ready) -->
+<script type="module" src="script.js"></script>
+<script type="module" src="login.js"></script>
+</body>
+</html>
